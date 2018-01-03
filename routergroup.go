@@ -190,6 +190,18 @@ func (group *RouterGroup) createStaticHandler(relativePath string, fs http.FileS
 		if nolisting {
 			c.Writer.WriteHeader(http.StatusNotFound)
 		}
+
+		file := c.Param("filepath")
+		// Check existence of file
+		if _, err := fs.Open(file); err != nil {
+			c.handlers = group.engine.allNoRoute
+			// Since we change our handler to Router's NotFound,
+			// we need to reset the index
+			c.index = -1
+			serveError(c, 404, default404Body)
+			return
+		}
+
 		fileServer.ServeHTTP(c.Writer, c.Request)
 	}
 }
